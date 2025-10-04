@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyek 1: Timer/Stopwatch JS</title>
+    <!-- Memuat Tailwind CSS untuk styling modern dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Gaya Kustom untuk tampilan yang bersih dan centering */
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1f2937, #111827);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CONTAINER UTAMA -->
+    <div class="bg-gray-800 p-8 md:p-12 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+        <h1 class="text-3xl font-bold text-center text-white mb-8">Stopwatch Sederhana</h1>
+
+        <!-- DISPLAY WAKTU -->
+        <div class="text-6xl md:text-7xl font-mono text-center mb-10 p-5 rounded-xl bg-gray-900 shadow-inner" id="display">
+            00:00:00
+        </div>
+
+        <!-- AREA TOMBOL KONTROL -->
+        <div class="flex justify-center space-x-4">
+            
+            <button id="startStopBtn" 
+                    class="flex-1 py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition duration-200 shadow-lg active:scale-95">
+                Mulai
+            </button>
+            
+            <button id="resetBtn" 
+                    class="flex-1 py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition duration-200 shadow-lg active:scale-95">
+                Reset
+            </button>
+
+        </div>
+        
+        <!-- AREA LAP (Fitur Tambahan) -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold text-gray-400 mb-3 border-b border-gray-700 pb-1">Catatan Waktu (Laps)</h3>
+            <ul id="lapList" class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                <!-- Lap items will be inserted here -->
+            </ul>
+            <button id="lapBtn" 
+                    class="w-full mt-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-xl transition duration-200 active:scale-95" 
+                    disabled>
+                Catat (Lap)
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Logika JavaScript akan dimasukkan di sini
+        
+        // =========================================================
+        // BAGIAN 1: DEFINISI VARIABEL
+        // =========================================================
+
+        let startTime; // Menyimpan waktu ketika timer dimulai
+        let elapsedTime = 0; // Waktu yang telah berlalu (dalam milidetik)
+        let timerInterval; // Menyimpan ID interval untuk mengontrol loop waktu
+        let isRunning = false; // Status apakah stopwatch sedang berjalan atau tidak
+        let lapCounter = 0; // Menghitung jumlah lap
+        
+        // DOM Elements
+        const display = document.getElementById('display');
+        const startStopBtn = document.getElementById('startStopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const lapBtn = document.getElementById('lapBtn');
+        const lapList = document.getElementById('lapList');
+
+        // =========================================================
+        // BAGIAN 2: FUNGSI INTI LOGIKA WAKTU
+        // =========================================================
+        
+        /**
+         * Mengubah waktu yang berlalu (ms) menjadi format HH:MM:SS (String)
+         * Materi: Fungsi, Operator Modulo (%), dan String Formatting.
+         */
+        function timeToString(time) {
+            // Menghitung jam, menit, dan detik
+            let diffInHrs = time / 3600000; // Total jam
+            let hh = Math.floor(diffInHrs); // Jam utuh
+
+            let diffInMin = (diffInHrs - hh) * 60; // Total menit sisa
+            let mm = Math.floor(diffInMin); // Menit utuh
+
+            let diffInSec = (diffInMin - mm) * 60; // Total detik sisa
+            let ss = Math.floor(diffInSec); // Detik utuh
+
+            // Menggunakan padStart untuk memastikan format dua digit (e.g., 5 -> 05)
+            let formattedHH = hh.toString().padStart(2, "0");
+            let formattedMM = mm.toString().padStart(2, "0");
+            let formattedSS = ss.toString().padStart(2, "0");
+
+            return `${formattedHH}:${formattedMM}:${formattedSS}`;
+        }
+
+        /**
+         * Fungsi yang dipanggil setiap 1000ms (1 detik) untuk memperbarui tampilan.
+         */
+        function updateTime() {
+            // Hitung waktu yang berlalu dari waktu mulai hingga sekarang
+            elapsedTime = Date.now() - startTime; 
+            
+            // Perbarui tampilan dengan waktu baru yang sudah diformat
+            display.textContent = timeToString(elapsedTime);
+        }
+
+        // =========================================================
+        // BAGIAN 3: FUNGSI KONTROL (Event Handling)
+        // =========================================================
+
+        /**
+         * Mengontrol Start dan Stop Stopwatch.
+         * Materi: Kondisi (if/else) dan Fungsi Global Waktu (setInterval).
+         */
+        function startStop() {
+            if (isRunning) {
+                // FUNGSI STOP
+                clearInterval(timerInterval); // Menghentikan interval
+                startStopBtn.textContent = "Lanjut";
+                startStopBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                startStopBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                lapBtn.disabled = true; // Non-aktifkan tombol lap saat berhenti
+            } else {
+                // FUNGSI START/LANJUT
+                startTime = Date.now() - elapsedTime; // Mengatur waktu mulai agar waktu sebelumnya dipertahankan
+                timerInterval = setInterval(updateTime, 1000); // Mulai interval, panggil updateTime setiap 1000ms
+                startStopBtn.textContent = "Jeda";
+                startStopBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                startStopBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                lapBtn.disabled = false; // Aktifkan tombol lap saat berjalan
+            }
+            isRunning = !isRunning; // Toggle status
+        }
+
+        /**
+         * Fungsi untuk mereset Stopwatch.
+         */
+        function reset() {
+            clearInterval(timerInterval); // Pastikan interval berhenti
+            isRunning = false;
+            elapsedTime = 0;
+            lapCounter = 0;
+            display.textContent = "00:00:00";
+            startStopBtn.textContent = "Mulai";
+            startStopBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+            startStopBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            lapBtn.disabled = true;
+            lapList.innerHTML = ''; // Menghapus semua lap list
+        }
+
+        /**
+         * Fungsi untuk mencatat waktu lap.
+         * Materi: DOM Manipulation (appendChild)
+         */
+        function recordLap() {
+            if (isRunning) {
+                lapCounter++;
+                const lapTime = timeToString(elapsedTime);
+                
+                // Membuat elemen list baru
+                const listItem = document.createElement('li');
+                listItem.className = 'flex justify-between text-gray-300 text-sm font-mono p-1 border-b border-gray-700';
+                listItem.innerHTML = `
+                    <span class="font-bold text-gray-100">Lap ${lapCounter}</span>
+                    <span>${lapTime}</span>
+                `;
+                
+                // Memasukkan item lap baru ke paling atas list
+                lapList.prepend(listItem); 
+            }
+        }
+
+        // =========================================================
+        // BAGIAN 4: EVENT LISTENERS (Menghubungkan JS ke HTML)
+        // =========================================================
+        
+        startStopBtn.addEventListener('click', startStop);
+        resetBtn.addEventListener('click', reset);
+        lapBtn.addEventListener('click', recordLap);
+
+    </script>
+</body>
+</html>
