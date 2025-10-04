@@ -1,4 +1,4 @@
-⏱️ Proyek 1: Stopwatch Sederhana (Vanilla JavaScript Mastery)
+⏱️ Proyek 1: Stopwatch Sederhana. (Vanilla JavaScript Mastery)
 Jalur Belajar: Fasa I - Fondasi JavaScript Inti
 
 Proyek ini bertujuan untuk menguasai konsep dasar JavaScript seperti Event Handling, DOM Manipulation, dan fungsi waktu (setInterval). Stopwatch ini adalah aplikasi client-side murni (tanpa backend) yang menampilkan waktu dalam format Jam:Menit:Detik.

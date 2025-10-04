@@ -1,4 +1,4 @@
-# ⏱️ Timer Sederhana – Vanilla JavaScript
+# ⏱️ Timer Sederhana. – Vanilla JavaScript
 
 
 ## 📚 Tujuan Pembelajaran
